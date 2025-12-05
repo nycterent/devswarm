@@ -148,8 +148,18 @@ main() {
     log "Updating swarm manifest..."
     mkdir -p .swarm
     
-    # Generate node ID
-    NODE_ID=$(echo "$OWNER/$REPO" | sha256sum 2>/dev/null | cut -c1-16 || echo "unknown")
+    # Generate node ID (portable across Linux/macOS)
+    NODE_ID=$(echo "$OWNER/$REPO" | sha256sum 2>/dev/null | cut -c1-16 || \
+              echo "$OWNER/$REPO" | shasum -a 256 2>/dev/null | cut -c1-16 || \
+              echo "$(echo "$OWNER/$REPO" | md5sum 2>/dev/null | cut -c1-16)" || \
+              echo "unknown")
+    
+    # Build forks array for JSON (handle empty case)
+    if [ -n "$FORKS" ] && [ "$(echo "$FORKS" | grep -v '^$' | wc -l)" -gt 0 ]; then
+        FORKS_JSON=$(echo "$FORKS" | grep -v '^$' | jq -R . 2>/dev/null | jq -s . 2>/dev/null || echo "[]")
+    else
+        FORKS_JSON="[]"
+    fi
     
     # Create manifest JSON
     cat > .swarm/manifest.json << EOF
@@ -163,7 +173,7 @@ main() {
   "swarm_topology": {
     "fork_count": $FORK_COUNT,
     "health": "$HEALTH",
-    "forks": $(echo "$FORKS" | grep -v '^$' | jq -R . 2>/dev/null | jq -s . 2>/dev/null || echo "[]")
+    "forks": $FORKS_JSON
   },
   "distribution_mechanics": {
     "method": "fork-native",
@@ -177,9 +187,9 @@ EOF
     
     log "✓ Swarm manifest updated"
     
-    # Commit changes (if any)
-    git config user.name "Swarm Coordinator" 2>/dev/null || true
-    git config user.email "swarm@devswarm.local" 2>/dev/null || true
+    # Commit changes (if any) - use --local to not affect global git config
+    git config --local user.name "Swarm Coordinator" 2>/dev/null || true
+    git config --local user.email "swarm@devswarm.local" 2>/dev/null || true
     
     if ! git diff --quiet .swarm/ 2>/dev/null; then
         git add .swarm/
