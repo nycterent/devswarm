@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - master
-  fork:
   workflow_dispatch:
   schedule:
     # Run every 6 hours to maintain swarm health
@@ -27,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq curl git
+          sudo apt-get install -y jq curl
       
       - name: Run swarm coordinator
         env:
