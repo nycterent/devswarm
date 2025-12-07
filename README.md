@@ -524,6 +524,7 @@ Bootstrap from any of these. This list updates as the swarm syncs.
 | Fork | Platform | Status |
 |------|----------|--------|
 | [nycterent/devswarm](https://github.com/nycterent/devswarm) | Github | Origin |
+| [blinkinglight/devswarm](https://github.com/blinkinglight/devswarm) | Github | Fork |
 <!-- SWARM_FORKS_END -->
 
 > **Your fork not listed?** It will appear after the next swarm sync cycle (runs every 6 hours).
